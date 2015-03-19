@@ -1,17 +1,16 @@
-import java.awt.Component;
-import java.io.BufferedWriter;
+package util.io.binary;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javafx.scene.control.TreeItem;
+
+import tree.regex.components.Node;
+import tree.regex.components.Order;
 
 /**
  * Parses a binary file into a tree structure for visualization.
@@ -25,8 +24,8 @@ public class TreeParser
     public StringTable engParser;
     public StringTableParser parser;
     
-    // The JTree.
-    private JTree tree;
+    // The Parsed Root Node
+    private TreeItem<Node<String>> rootItem;
 
     /**
      * Constructor for the class.  Initializes parsing.
@@ -157,7 +156,7 @@ public class TreeParser
         // Skip zeroed data
         index += 4;
 
-        JTree tree = generateEntries(chunkRawData, index, numEntries);
+        generateEntries(chunkRawData, index, numEntries);
     }
 
     /**
@@ -167,12 +166,9 @@ public class TreeParser
      * @param numEntries Number of entries in the chunk.
      * @return The generated JTree.
      */
-    private JTree generateEntries(byte[] chunkRawData, int index_original, int numEntries)
+    private void generateEntries(byte[] chunkRawData, int index_original, int numEntries)
     {
-        DefaultMutableTreeNode top = nodeGenerator(chunkRawData, index_original);
-        tree = new JTree(top);
-        	
-        return tree;
+        rootItem = nodeGenerator(chunkRawData, index_original);
     }
 
     /**
@@ -181,9 +177,9 @@ public class TreeParser
      * @param index_original Index to start at.
      * @return Node of the tree.
      */
-    private DefaultMutableTreeNode nodeGenerator(byte[] chunkRawData, int index_original) 
+    private TreeItem<Node<String>> nodeGenerator(byte[] chunkRawData, int index_original) 
     {
-    	DefaultMutableTreeNode node = new DefaultMutableTreeNode();
+    	TreeItem<Node<String>> node = new TreeItem<Node<String>>();
     	
     	Node innerNode = new Node();
     	
@@ -285,11 +281,16 @@ public class TreeParser
     	// The parser will act differently in TextTransformation project.
     	
     	// Add the children to the node recursively.
-    	node.setUserObject(innerNode);
+    	
+    	//TODO: We should use a different class for storing data in the tree later.
+    	// Right now we are storing a Node object in the TreeView's own nodes (TreeItem).
+    	// Only the data and order variables are needed in Node, this should just be its
+    	// own data object class.
+    	node.setValue(innerNode);
     	
     	for (int j = 0; j < numChildren; j++)
     	{
-    		node.add(nodeGenerator(chunkRawData, childrenOffset + (j * 60)));
+    		node.getChildren().add(nodeGenerator(chunkRawData, childrenOffset + (j * 60)));
     	}
     	
 		return node;
@@ -407,28 +408,14 @@ public class TreeParser
         engParser.sizeLeadingUpToTable = sizeKeys;
         engParser.stringTable = parser.generateDictionary(chunkRawData, index, countEntries);
         engParser.numEntries = engParser.stringTable.size();
-        
-        Path path = Paths.get("C:\\Users\\Stephen Fenton\\Desktop\\Debaser - Pixies\\testout.txt");
-        
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8))
-        {
-	        for (SimpleEntry<Long, String> entry : engParser.stringTable)
-	        {
-	        	writer.write(entry.getValue());
-	            writer.newLine();
-	        }
-	        
-	        writer.close();
-        }
-        
     }
     
     /**
      * Returns the parsed JTree.
      * @return The tree.
      */
-    public JTree getTree()
+    public TreeItem<Node<String>> getRootItem()
     {
-    	return tree;
+    	return rootItem;
     }
 }

@@ -1,3 +1,4 @@
+package tree.regex.components;
 
 /**
  * Enum declaring variables that we may find in strings passed

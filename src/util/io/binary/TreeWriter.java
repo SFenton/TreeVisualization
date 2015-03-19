@@ -1,3 +1,4 @@
+package util.io.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -8,16 +9,18 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
+import java.util.Vector;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javafx.scene.control.TreeItem;
+
+import tree.regex.components.ModifiedNode;
+import tree.regex.components.Node;
+import tree.regex.components.Order;
 
 
 public class TreeWriter 
 {
-	private JTree tree;
+	private TreeItem<Node<String>> rootItem;
 	private String filepath;
 	private List<Long> keyList;
 	private List<SimpleEntry<Long, String>> stringTable;
@@ -30,9 +33,9 @@ public class TreeWriter
 	private List<Byte> stbl_keys;
 	private List<Byte> stbl_table;
 	
-	public TreeWriter(JTree tree, String filepath)
+	public TreeWriter(TreeItem<Node<String>> rootItem, String filepath)
 	{
-		this.tree = tree;
+		this.rootItem = rootItem;
 		this.filepath = filepath;
 		keyList = new ArrayList<Long>();
 		stringTable = new ArrayList<SimpleEntry<Long, String>>();
@@ -69,7 +72,7 @@ public class TreeWriter
 		}
 		
 		// Write
-		Files.write(Paths.get("C:\\Users\\Stephen Fenton\\Desktop\\Debaser - Pixies\\outtest.rif"), finalOut);
+		Files.write(Paths.get(filepath), finalOut);
 	}
 
 	private void writeStbl() 
@@ -319,7 +322,7 @@ public class TreeWriter
 	public void PrepareTree()
 	{
 		// Add the breadth-first enumeration to the list of modified nodes
-		Enumeration breadthFirst = ((DefaultMutableTreeNode)tree.getModel().getRoot()).breadthFirstEnumeration();
+		Enumeration<TreeItem<Node<String>>> breadthFirst = breadthFirstEnumeration(rootItem);
 		printEnumeration(breadthFirst);
 		
 		// Go through and set node offset data
@@ -357,14 +360,34 @@ public class TreeWriter
 		}
 	}
 	
+	/**
+	 * Get a Breadth First Enumeration of a Tree given a starting {@link TreeItem} root node.
+	 * 
+	 * @param rootItem The {@link TreeItem} to start the BFE from
+	 * @return An {@link Enumeration} containing all nodes in BF ordering starting from the given
+	 * 		root node.
+	 */
+	private Enumeration<TreeItem<Node<String>>> breadthFirstEnumeration(TreeItem<Node<String>> rootItem) {
+		// Maintain a vector for TreeItems as we go along
+		Vector<TreeItem<Node<String>>> items = new Vector<TreeItem<Node<String>>>();
+		items.add(rootItem);
+		
+		for (int i = 0; i < items.size(); i++) {
+			for (TreeItem<Node<String>> item : items.get(i).getChildren()) {
+				items.add(item);
+			}
+		}
+		return items.elements();
+	}
+	
 	@SuppressWarnings("rawtypes")
-	private static void printEnumeration(Enumeration e) {
+	private static void printEnumeration(Enumeration<TreeItem<Node<String>>> e) {
 	    while (e.hasMoreElements()) {
 	      ModifiedNode mNode = new ModifiedNode();
-	      DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.nextElement();
-	      mNode.data = ((Node)node.getUserObject()).data;
-	      mNode.numChildren = node.getChildCount();
-	      mNode.order = ((Node)node.getUserObject()).order;
+	      TreeItem<Node<String>> node = (TreeItem<Node<String>>) e.nextElement();
+	      mNode.data = (node.getValue()).data;
+	      mNode.numChildren = node.getChildren().size();
+	      mNode.order = (node.getValue()).order;
 	      
 	      nodes.add(mNode);
 	    }

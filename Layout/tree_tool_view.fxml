@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.TreeView?>
+
+<VBox fx:controller="gui.application.controllers.TreeToolViewController" xmlns:fx="http://javafx.com/fxml">
+	<MenuBar>
+		<Menu text="File">
+			<MenuItem text="Import Binary" onAction="#handleImportAction"/>
+			<MenuItem text="Export Binary" onAction="#handleExportAction"/>
+		</Menu>
+	</MenuBar>
+	<StackPane>
+		<TreeView fx:id="tree" editable="true"/>
+	</StackPane>
+</VBox>
+
