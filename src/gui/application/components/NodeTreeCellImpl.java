@@ -91,9 +91,13 @@ public final class NodeTreeCellImpl extends TreeCell<Node<String>> {
 	public void startEdit() {
 		super.startEdit();
 
+		// Prep Vbox and textfields for edit
 		if (editVbox == null) {
 			createTextFieldsVBox();
 		}
+		regexTextField.setText(getRegexString());
+		orderTextField.setText(getOrderString());
+		
 		setText(null);
 		setGraphic(editVbox);
 	}
@@ -104,6 +108,12 @@ public final class NodeTreeCellImpl extends TreeCell<Node<String>> {
 	@Override
 	public void cancelEdit() {
 		super.cancelEdit();
+		
+		// Ensure that textFields are properly set
+		regexTextField.setText(getRegexString());
+		orderTextField.setText(getOrderString());
+		
+		// Appropriately set cell's graphic/text
 		setText(getNodeString());
 		setGraphic(getTreeItem().getGraphic());
 	}
